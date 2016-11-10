@@ -85,36 +85,36 @@ impl ElfHeaderBuilder {
         }
     }
 
-    pub fn set_type(&self, is_executable: bool) {
-
+    pub fn set_type(&mut self, is_executable: bool) {
+        self.e_type = if is_executable { 0x0200 } else { 0x0100 }
     }
 
-    pub fn set_entry(&self, entry_point: u64) {
-
+    pub fn set_entry(&mut self, entry_point: u64) {
+        self.e_entry = entry_point;
     }
 
-    pub fn set_phoff(&self, phoff: u64) {
-
+    pub fn set_phoff(&mut self, phoff: u64) {
+        self.e_phoff = phoff;
     }
 
-    pub fn set_phentsize(&self, phentsize: u16) {
-
+    pub fn set_phentsize(&mut self, phentsize: u16) {
+        self.e_phentsize = phentsize;
     }
 
-    pub fn set_shoff(&self, shoff: u64) {
-
+    pub fn set_shoff(&mut self, shoff: u64) {
+        self.e_shoff = shoff;
     }
 
-    pub fn set_shentsize(&self, shentsize: u16) {
-
+    pub fn set_shentsize(&mut self, shentsize: u16) {
+        self.e_shentsize = shentsize;
     }
 
-    pub fn set_shnum(&self, shnum: u16) {
-
+    pub fn set_shnum(&mut self, shnum: u16) {
+        self.e_shnum = shnum;
     }
 
-    pub fn set_shstrndx(&self, shstrndx: u16) {
-
+    pub fn set_shstrndx(&mut self, shstrndx: u16) {
+        self.e_shstrndx = shstrndx;
     }
 
     pub fn build(&self) -> ElfHeader {

@@ -42,7 +42,7 @@ fn write_elf(output_file: &mut File) {
 
 // todo: enum
 fn get_register() -> String {
-    return "r10".to_string();
+    return "r10".to_string()
 }
 
 fn set_identifier() {
