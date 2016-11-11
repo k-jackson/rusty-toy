@@ -36,8 +36,10 @@ fn write_text(output_file: &mut File) {
 }
 
 fn write_elf(output_file: &mut File) {
-    let elfie = elfwriter::ElfHeaderBuilder::new().build();
-    elfie.write_header(output_file);
+    let elf_header = elfwriter::ElfHeaderBuilder::new().build();
+    elf_header.write(output_file);
+    let elf_program_header = elfwriter::ElfProgramHeaderBuilder::new().build();
+    elf_program_header.write(output_file);
 }
 
 // todo: enum

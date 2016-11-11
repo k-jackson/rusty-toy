@@ -21,7 +21,7 @@ struct ElfHeader {
 }
 impl ElfHeader {
 
-    pub fn write_header(&self, output_file: &mut File) {
+    pub fn write(&self, output_file: &mut File) {
         self.e_ident.write(output_file);
         self.e_ident_pad.write(output_file);
         self.e_type.write(output_file);
@@ -138,3 +138,64 @@ impl ElfHeaderBuilder {
     }
 }
 
+struct ElfProgramHeader {
+    p_type: u32,
+    p_flags: u32,
+    p_offset: u64,
+    p_vaddr: u64,
+    p_paddr: u64,
+    p_filesz: u64,
+    p_memsz: u64,
+    p_align: u64
+}
+impl ElfProgramHeader {
+    pub fn write(&self, output_file: &mut File) {
+        self.p_type.write(output_file);
+        self.p_flags.write(output_file);
+        self.p_offset.write(output_file);
+        self.p_vaddr.write(output_file);
+        self.p_paddr.write(output_file);
+        self.p_filesz.write(output_file);
+        self.p_memsz.write(output_file);
+        self.p_align.write(output_file);
+    }
+}
+
+pub struct ElfProgramHeaderBuilder {
+    p_type: u32,
+    p_flags: u32,
+    p_offset: u64,
+    p_vaddr: u64,
+    p_paddr: u64,
+    p_filesz: u64,
+    p_memsz: u64,
+    p_align: u64
+}
+
+impl ElfProgramHeaderBuilder {
+    pub fn new() -> ElfProgramHeaderBuilder {
+        ElfProgramHeaderBuilder {
+            p_type: 0x01000000, // Loadable segment
+            p_flags: 0x05000000, // r+x
+            p_offset: 0x0, // offset of segment's first byte from start of segment?
+            p_vaddr: 0x0000400000000000, // Virtual memory destination address
+            p_paddr: 0x0000400000000000, // Physical memory destination address (typically N/A)
+            p_filesz: 0xFF00000000000000, // Size of file image for segment
+            p_memsz: 0xFF00000000000000, // Size of memory image for segment
+            p_align: 0x0000200000000000 // Value to which segments are aligned in memory + file
+        }
+    }
+
+    pub fn build(&self) -> ElfProgramHeader {
+        ElfProgramHeader {
+            p_type: self.p_type,
+            p_flags: self.p_flags,
+            p_offset: self.p_offset,
+            p_vaddr: self.p_vaddr,
+            p_paddr: self.p_paddr,
+            p_filesz: self.p_filesz,
+            p_memsz: self.p_memsz,
+            p_align: self.p_align
+        }
+    }
+}
