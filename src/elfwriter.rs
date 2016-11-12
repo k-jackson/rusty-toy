@@ -59,6 +59,7 @@ pub struct ElfHeaderBuilder {
 }
 
 impl ElfHeaderBuilder {
+    // Defaults for an executable
     pub fn new() -> ElfHeaderBuilder {
         ElfHeaderBuilder {
             e_ident: [
@@ -73,12 +74,12 @@ impl ElfHeaderBuilder {
             e_machine:   0x3e00,             // AMD64
             e_version:   0x01000000,         // V1
             e_entry:     0xb000400000000000, // IP entry point
-            e_phoff:     0x0,                // Program Header Table offset
+            e_phoff:     0x4000000000000000, // Program Header Table offset
             e_shoff:     0x0,                // Section Header Table offset (0 == none)
             e_flags:     0x0,                // Arch flags: n/a on i386
             e_ehsize:    0x4000,             // Size of ELF header -_-
-            e_phentsize: 0x4000,             // Program header size
-            e_phnum:     0x0000,             // Number of program headers
+            e_phentsize: 0x3800,             // Program header size
+            e_phnum:     0x0100,             // Number of program headers
             e_shentsize: 0x4000,             // Section header size
             e_shnum:     0x0000,             // Number of section headers
             e_shstrndx:  0x0000              // Section header string index
@@ -175,15 +176,42 @@ pub struct ElfProgramHeaderBuilder {
 impl ElfProgramHeaderBuilder {
     pub fn new() -> ElfProgramHeaderBuilder {
         ElfProgramHeaderBuilder {
-            p_type: 0x01000000, // Loadable segment
-            p_flags: 0x05000000, // r+x
-            p_offset: 0x0, // offset of segment's first byte from start of segment?
-            p_vaddr: 0x0000400000000000, // Virtual memory destination address
-            p_paddr: 0x0000400000000000, // Physical memory destination address (typically N/A)
+            p_type:   0x01000000,         // Loadable segment
+            p_flags:  0x05000000,         // r+x segment
+            p_offset: 0x0,                // offset of segment's first byte from start of segment?
+            p_vaddr:  0x0000400000000000, // Virtual memory destination address
+            p_paddr:  0x0000400000000000, // Physical memory destination address (typically N/A)
             p_filesz: 0xFF00000000000000, // Size of file image for segment
-            p_memsz: 0xFF00000000000000, // Size of memory image for segment
-            p_align: 0x0000200000000000 // Value to which segments are aligned in memory + file
+            p_memsz:  0xFF00000000000000, // Size of memory image for segment
+            p_align:  0x0000200000000000  // Value to which segments are aligned in memory + file
         }
+    }
+
+    // todo
+    pub fn set_type() {
+
+    }
+
+    // todo
+    pub fn set_flags() {
+
+    }
+
+    pub fn set_addr(&mut self, dest_addr: u64) {
+        self.p_vaddr = dest_addr;
+        self.p_paddr = dest_addr;
+    }
+
+    pub fn set_filesz(&mut self, file_size: u64) {
+        self.p_filesz = file_size;
+    }
+
+    pub fn set_memsz(&mut self, mem_size: u64) {
+        self.p_memsz = mem_size;
+    }
+
+    pub fn set_align(&mut self, alignment: u64) {
+        self.p_align = alignment;
     }
 
     pub fn build(&self) -> ElfProgramHeader {
