@@ -40,6 +40,7 @@ fn write_elf(output_file: &mut File) {
     elf_header.write(output_file);
     let elf_program_header = elfwriter::ElfProgramHeaderBuilder::new().build();
     elf_program_header.write(output_file);
+    elfwriter::ElfSectionHeader::new().write(output_file);
 }
 
 // todo: enum

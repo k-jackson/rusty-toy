@@ -75,13 +75,13 @@ impl ElfHeaderBuilder {
             e_version:   0x01000000,         // V1
             e_entry:     0xb000400000000000, // IP entry point
             e_phoff:     0x4000000000000000, // Program Header Table offset
-            e_shoff:     0x0,                // Section Header Table offset (0 == none)
+            e_shoff:     0x8000000000000000, // Section Header Table offset (0 == none)
             e_flags:     0x0,                // Arch flags: n/a on i386
             e_ehsize:    0x4000,             // Size of ELF header -_-
             e_phentsize: 0x3800,             // Program header size
             e_phnum:     0x0100,             // Number of program headers
             e_shentsize: 0x4000,             // Section header size
-            e_shnum:     0x0000,             // Number of section headers
+            e_shnum:     0x0100,             // Number of section headers
             e_shstrndx:  0x0000              // Section header string index
         }
     }
@@ -159,6 +159,9 @@ impl ElfProgramHeader {
         self.p_filesz.write(output_file);
         self.p_memsz.write(output_file);
         self.p_align.write(output_file);
+        // Pad 0s to the next 0x10, to make things easier to debug/calc for now
+        let pad: u64 = 0x0;
+        pad.write(output_file);
     }
 }
 
@@ -174,6 +177,7 @@ pub struct ElfProgramHeaderBuilder {
 }
 
 impl ElfProgramHeaderBuilder {
+
     pub fn new() -> ElfProgramHeaderBuilder {
         ElfProgramHeaderBuilder {
             p_type:   0x01000000,         // Loadable segment
@@ -227,3 +231,55 @@ impl ElfProgramHeaderBuilder {
         }
     }
 }
+
+pub struct ElfSectionHeader {
+    sh_name: u32,
+    sh_type: u32,
+    sh_flags: u32,
+    sh_addr: u64,
+    sh_offset: u64,
+    sh_size: u64,
+    sh_link: u32,
+    sh_info: u32,
+    sh_addralign: u64,
+    sh_entsize: u64
+}
+impl ElfSectionHeader {
+
+    pub fn new() -> ElfSectionHeader {
+        ElfSectionHeader {
+            sh_name:      0x01000000, // Name is first entry in ST
+            sh_type:      0x01000000, // SHT_PROGBITS
+            sh_flags:     0x06000000,
+            sh_addr:      0x0,
+            sh_offset:    0x8000000000000000,
+            sh_size:      0x0,
+            sh_link:      0x0,
+            sh_info:      0x00000000,
+            sh_addralign: 0x1000000000000000,
+            sh_entsize:   0x0000000000000000,
+        }
+    }
+
+    pub fn set_size(&mut self, section_header_size: u64) {
+        self.sh_size = section_header_size;
+    }
+
+    pub fn write(&self, output_file: &mut File) {
+        self.sh_name.write(output_file);
+        self.sh_type.write(output_file);
+        self.sh_flags.write(output_file);
+        self.sh_addr.write(output_file);
+        self.sh_offset.write(output_file);
+        self.sh_size.write(output_file);
+        self.sh_link.write(output_file);
+        self.sh_info.write(output_file);
+        self.sh_addralign.write(output_file);
+        self.sh_entsize.write(output_file);
+        // temp padding to align to next word
+        let pad: u32 = 0x0;
+        pad.write(output_file);
+    }
+}
+
+
