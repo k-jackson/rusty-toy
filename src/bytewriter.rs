@@ -13,6 +13,12 @@ impl<'a> ByteWriter for &'a[u8] {
     }
 }
 
+impl ByteWriter for u8 {
+    fn write(self, output_file: &mut File) {
+        output_file.write_u8(self);
+    }
+}
+
 impl ByteWriter for u16 {
     fn write(self, output_file: &mut File) {
         output_file.write_u16::<BigEndian>(self);
