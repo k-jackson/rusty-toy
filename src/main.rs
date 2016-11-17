@@ -6,6 +6,8 @@ mod tree;
 mod generator;
 mod elfwriter;
 mod bytewriter;
+mod asm;
+mod asm_macro;
 
 use std::error::Error;
 use std::fs::File;

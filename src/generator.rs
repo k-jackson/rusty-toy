@@ -6,6 +6,7 @@ use std::fs::File as File;
 use std::io::prelude::*;
 use std::path::Path;
 use bytewriter::ByteWriter;
+use asm::Assembler as Assembler;
 
 pub fn generate(ast: Node, output_file: &str) {
     // Traverse AST, output magic
@@ -92,15 +93,8 @@ fn write_elf(output_file: &mut File) {
     elf_header.write(output_file);
     elf_program_header.write(output_file);
 
-    // write a exit call as an
-    let mov_rax_60: [u8; 5] = [0xB8, 0x3c, 0x00, 0x00, 0x00];
-    let mov_rdi_0: [u8; 5]  = [0xBF, 0x00, 0x00, 0x00, 0x00];
-    let syscall: [u8; 2]    = [0x0F, 0x05];
-    let pad: [u8; 4] = [0,0,0,0];
-    mov_rax_60.write(output_file);
-    mov_rdi_0.write(output_file);
-    syscall.write(output_file);
-    pad.write(output_file); // align to next 0x10
+    // write a exit call as an e2e test
+    write_asm(output_file);
 
     sh_null.write(output_file);
     sh_text.write(output_file);
@@ -112,6 +106,11 @@ fn write_elf(output_file: &mut File) {
     //let datastr: [u8; 3] = [0x4F, 0x4B, 0x00];
     //datastr.write(output_file);
 
+}
+
+fn write_asm(output_file: &mut File) {
+    let mut asm = Assembler {output_file: output_file};
+    asm.exit();
 }
 
 // todo: enum
