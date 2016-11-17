@@ -36,7 +36,7 @@ impl ElfHeader {
             e_type:      0x0200,             // Executable file
             e_machine:   0x3e00,             // AMD64
             e_version:   0x01000000,         // V1
-            e_entry:     0xb000400000000000, // IP entry point
+            e_entry:     0x0000000000000000, // IP entry point
             e_phoff:     0x4000000000000000, // Program Header Table offset
             e_shoff:     0x8000000000000000, // Section Header Table offset (0 == none)
             e_flags:     0x0,                // Arch flags: n/a on i386
@@ -44,8 +44,8 @@ impl ElfHeader {
             e_phentsize: 0x3800,             // Program header size
             e_phnum:     0x0100,             // Number of program headers
             e_shentsize: 0x4000,             // Section header size
-            e_shnum:     0x0200,             // Number of section headers
-            e_shstrndx:  0x0100              // Which section header is the shstrtab
+            e_shnum:     0x0300,             // Number of section headers
+            e_shstrndx:  0x0200              // Which section header is the shstrtab
         }
     }
 
@@ -89,7 +89,7 @@ impl ElfHeader {
         self
     }
 
-    pub fn write(&self, output_file: &mut File) {
+    pub fn write(&self, output_file: &mut File) -> &ElfHeader{
         self.e_ident.write(output_file);
         self.e_ident_pad.write(output_file);
         self.e_type.write(output_file);
@@ -105,6 +105,15 @@ impl ElfHeader {
         self.e_shentsize.write(output_file);
         self.e_shnum.write(output_file);
         self.e_shstrndx.write(output_file);
+        self
+    }
+
+    pub fn get_shentsize(&self) -> u16 {
+        self.e_shentsize
+    }
+
+    pub fn get_size() -> u64 {
+        64
     }
 }
 
@@ -124,11 +133,11 @@ impl ElfProgramHeader {
         ElfProgramHeader {
             p_type:   0x01000000,         // Loadable segment
             p_flags:  0x05000000,         // r+x segment
-            p_offset: 0x0,                // offset of segment's first byte from start of segment?
+            p_offset: 0x0000000000000000, // offset of segment's first byte from start of segment (multiple pheaders)
             p_vaddr:  0x0000400000000000, // Virtual memory destination address
             p_paddr:  0x0000400000000000, // Physical memory destination address (typically N/A)
-            p_filesz: 0xFF00000000000000, // Size of file image for segment
-            p_memsz:  0xFF00000000000000, // Size of memory image for segment
+            p_filesz: 0x8C00000000000000, // Size of file image for segment
+            p_memsz:  0x8C00000000000000, // Size of memory image for segment
             p_align:  0x0000200000000000  // Value to which segments are aligned in memory + file
         }
     }
@@ -164,7 +173,7 @@ impl ElfProgramHeader {
         self
     }
 
-    pub fn write(&self, output_file: &mut File) {
+    pub fn write(&self, output_file: &mut File)  -> &ElfProgramHeader {
         self.p_type.write(output_file);
         self.p_flags.write(output_file);
         self.p_offset.write(output_file);
@@ -176,6 +185,11 @@ impl ElfProgramHeader {
         // Pad 0s to the next 0x10, to make things easier to debug/calc for now
         let pad: u64 = 0x0;
         pad.write(output_file);
+        self
+    }
+
+    pub fn get_size() -> u64 {
+        56
     }
 }
 
@@ -239,6 +253,11 @@ impl ElfSectionHeader {
         self
     }
 
+    pub fn set_addr(&mut self, addr: u64) -> &mut ElfSectionHeader {
+        self.sh_addr = addr;
+        self
+    }
+
     pub fn write(&self, output_file: &mut File) {
         self.sh_name.write(output_file);
         self.sh_type.write(output_file);
@@ -250,6 +269,10 @@ impl ElfSectionHeader {
         self.sh_info.write(output_file);
         self.sh_addralign.write(output_file);
         self.sh_entsize.write(output_file);
+    }
+
+    pub fn get_size() -> u64 {
+        64
     }
 }
 
@@ -295,8 +318,8 @@ impl ElfStringTable {
         }
     }
 
-    pub fn get_table_size_be(&self) -> u64  {
-        self.st_string_len.to_be()
+    pub fn get_table_size(&self) -> u64 {
+        self.st_string_len
     }
 
     pub fn write(&self, output_file: &mut File) {
