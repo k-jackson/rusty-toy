@@ -27,14 +27,24 @@ fn make_output_file(output_file: &str) -> Result<File, io::Error> {
 }
 
 fn write_elf(output_file: &mut File) {
-    let asm_offset = 128;
-    let section_header_count: u16 =  3;
-    let section_header_offset: u64 = 144;
-    let section_header_size: u16 = 64;
-
     let mut elf_header = elfwriter::ElfHeader::new();
-
     let elf_program_header = elfwriter::ElfProgramHeader::new();
+
+    let section_header_count: u16 =  3;
+    let section_header_size: u16 = 64;
+    let asm_offset = 128;
+    let assembler = build_asm();
+    let asm_length = assembler.get_length();
+    let asm_data = assembler.get_output();
+    let section_header_offset: u64 = asm_offset + asm_length;
+
+    elf_header.set_entry(0x8000400000000000);
+    elf_header.set_shnum(section_header_count.to_be());
+    elf_header.set_shentsize(section_header_size.to_be());
+    elf_header.set_shoff(section_header_offset.to_be());
+    elf_header.write(output_file);
+    elf_program_header.write(output_file);
+    asm_data.as_slice().write(output_file);
 
     // shstrtab contents
     let mut elf_string_table = elfwriter::ElfStringTable::new();
@@ -52,14 +62,14 @@ fn write_elf(output_file: &mut File) {
         .set_type(0x00000000);
 
     let sh_text_offset: u64 = asm_offset;
-    let sh_text_length: u64 = 0x0C00000000000000;
+    let sh_text_length: u64 = asm_length;
     let mut sh_text = elfwriter::ElfSectionHeader::new();
     sh_text
         .set_flags(0x0600000000000000)
         .set_name(0x0b000000)
         .set_align(0x1000000000000000)
         .set_addr(0x8000400000000000)
-        .set_size(sh_text_length)
+        .set_size(sh_text_length.to_be())
         .set_offset(sh_text_offset.to_be())
         .set_type(0x01000000);
 
@@ -85,17 +95,6 @@ fn write_elf(output_file: &mut File) {
         .set_align(0x0100000000000000)
         .set_type(0x03000000);
 
-    elf_header.set_entry(0x8000400000000000);
-    elf_header.set_shnum(section_header_count.to_be());
-    elf_header.set_shentsize(section_header_size.to_be());
-    elf_header.set_shoff(section_header_offset.to_be());
-
-    elf_header.write(output_file);
-    elf_program_header.write(output_file);
-
-    // write a exit call as an e2e test
-    write_asm(output_file);
-
     sh_null.write(output_file);
     sh_text.write(output_file);
     //sh_data.write(output_file);
@@ -108,9 +107,10 @@ fn write_elf(output_file: &mut File) {
 
 }
 
-fn write_asm(output_file: &mut File) {
-    let mut asm = Assembler {output_file: output_file};
+fn build_asm() -> Assembler {
+    let mut asm = Assembler {output: Vec::new(), length: 0};
     asm.exit();
+    asm
 }
 
 // todo: enum
