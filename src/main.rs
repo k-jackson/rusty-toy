@@ -8,12 +8,12 @@ mod elfwriter;
 mod bytewriter;
 mod asm;
 mod asm_macro;
+mod asm_opcode;
 
 use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use byteorder::{LittleEndian, WriteBytesExt};
 
 fn main() {
     let program = read();
