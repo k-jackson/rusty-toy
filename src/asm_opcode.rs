@@ -54,6 +54,18 @@ fn get_val_slice(val: u64) -> [u8; 8] {
     val_slice
 }
 
+// Helper method to convert u32 values to a big endian fixed-size array
+fn get_val_slice_32(val: u32) -> [u8; 4] {
+    let mut val_vec = vec![];
+    val_vec.write_u32::<BigEndian>(val).unwrap();
+    let mut val_slice = [0; 4];
+    for i in 0..4 {
+        val_slice[i] = val_vec[i];
+    }
+
+    val_slice
+}
+
 // The "REX.B"(0001) bit signals to use the higher half of the GPRs
 fn get_rex_opcode_reg(reg: &Register) -> u8 {
     let gpr_select = match reg {
@@ -80,6 +92,19 @@ pub fn mov_im(reg: Register, val: u64) -> [u8; 10] {
     opcode[1] = mov_op;
     for i in 2..10 {
         opcode[i] = val_slice[i - 2];
+    }
+
+    opcode
+}
+
+pub fn mov_im_32(reg: Register, val: u32) -> [u8; 5] {
+    let mov_op: u8 = 0xb8 + get_register_operand(&reg);
+
+    let val_slice = get_val_slice_32(val);
+    let mut opcode = [0; 5];
+    opcode[0] = mov_op;
+    for i in 1..5 {
+        opcode[i] = val_slice[i - 1];
     }
 
     opcode

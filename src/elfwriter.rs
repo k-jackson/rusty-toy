@@ -42,10 +42,10 @@ impl ElfHeader {
             e_flags:     0x0,                // Arch flags: n/a on i386
             e_ehsize:    0x4000,             // Size of ELF header -_-
             e_phentsize: 0x3800,             // Program header size
-            e_phnum:     0x0100,             // Number of program headers
+            e_phnum:     0x0200,             // Number of program headers
             e_shentsize: 0x4000,             // Section header size
             e_shnum:     0x0300,             // Number of section headers
-            e_shstrndx:  0x0200              // Which section header is the shstrtab
+            e_shstrndx:  0x0300              // Which section header is the shstrtab
         }
     }
 
@@ -142,14 +142,19 @@ impl ElfProgramHeader {
         }
     }
 
-    // todo
-    pub fn set_type() {
-
+    pub fn set_offset(&mut self, offset: u64) -> &mut ElfProgramHeader {
+        self.p_offset = offset;
+        self
     }
 
-    // todo
-    pub fn set_flags() {
+    pub fn set_type(&mut self, ph_type: u32) -> &mut ElfProgramHeader {
+        self.p_type = ph_type;
+        self
+    }
 
+    pub fn set_flags(&mut self, flags: u32) -> &mut ElfProgramHeader {
+        self.p_flags = flags;
+        self
     }
 
     pub fn set_addr(&mut self, dest_addr: u64) -> &mut ElfProgramHeader {
@@ -183,8 +188,9 @@ impl ElfProgramHeader {
         self.p_memsz.write(output_file);
         self.p_align.write(output_file);
         // Pad 0s to the next 0x10, to make things easier to debug/calc for now
-        let pad: u64 = 0x0;
-        pad.write(output_file);
+        // todo: remove padding
+        //let pad: u64 = 0x0;
+        //pad.write(output_file);
         self
     }
 

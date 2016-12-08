@@ -21,7 +21,6 @@ fn main() {
     for t in &tokens {
         println!("{:?}", t);
     }
-    println!("parsing...");
 
     let ast = parser::parse(&tokens);
     match ast {

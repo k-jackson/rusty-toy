@@ -128,7 +128,6 @@ pub fn parse(tokens: &Vec<Token>) -> Option<Node>
 
     println!("{:#?}",parse_result);
     if parse_result.is_some() {
-        println!("Parsing succeeded!");
         return parse_result;
     } else {
         println!("Parsing failed!");

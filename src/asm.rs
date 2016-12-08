@@ -11,6 +11,10 @@ impl Assembler {
         self.length += Macro::exit(&mut self.output);
     }
 
+    pub fn print_str(&mut self, str_offset: u64, str_len: u64) {
+        self.length += Macro::print_str(&mut self.output, str_offset, str_len);
+    }
+
     pub fn get_length(&self) -> u64 {
         self.length
     }
