@@ -1,5 +1,6 @@
 use byteorder::{BigEndian, WriteBytesExt};
 
+#[allow(unused)]
 pub enum Register {
     RAX,
     RCX,
@@ -109,6 +110,11 @@ pub fn mov_im_32(reg: Register, val: u32) -> [u8; 5] {
 
     opcode
 }
+
+pub fn syscall() -> [u8; 2] {
+    [0x0F, 0x05]
+}
+/*
 pub fn push(val: u64) -> u64 {unimplemented!()}
 pub fn pop(dest: u64) -> u64 {unimplemented!()}
 pub fn inc(reg: Register, val: u64) -> u64 {unimplemented!()}
@@ -123,6 +129,4 @@ pub fn cmp(reg: Register, val: u64) -> u64 {unimplemented!()}
 pub fn jmp(reg: Register, val: u64) -> u64 {unimplemented!()}
 pub fn je(reg: Register, val: u64) -> u64 {unimplemented!()}
 pub fn jne(reg: Register, val: u64) -> u64 {unimplemented!()}
-pub fn syscall() -> [u8; 2] {
-    [0x0F, 0x05]
-}
+*/

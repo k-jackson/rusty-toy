@@ -15,6 +15,7 @@ pub enum TokenType {
     BraceOpen,
     BraceClose,
     Integer,
+    FunctionCall,
     Unknown
 }
 
@@ -48,6 +49,8 @@ pub fn scan(program: String) -> Vec<Token> {
             x if x.is_alphabetic() => {
 
                 let mut var_string = String::new();
+                let mut sub_match = TokenType::Variable;
+
                 var_string.push(chr);
 
                 loop {
@@ -58,14 +61,18 @@ pub fn scan(program: String) -> Vec<Token> {
                                     var_string.push(next);
                                     chars.next();
                                 },
+                                x if x == '(' => {
+                                    sub_match = TokenType::FunctionCall;
+                                    break
+                                }
                                 _ => break
                             };
                         },
                         _ => break
                     };
                 }
-                Some(Token{ t_type: TokenType::Variable, t_val: var_string})
-                //Some(Token::Variable(var_string))
+
+                Some(Token{ t_type: sub_match, t_val: var_string})
             },
             x if x.is_numeric() => {
                 let mut var_string = String::new();

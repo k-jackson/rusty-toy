@@ -1,4 +1,3 @@
-use std::fs::File as File;
 use asm_macro as Macro;
 
 pub struct Assembler {

@@ -18,6 +18,7 @@ pub struct Node
     pub left:  Option<Box<Node>>,
     pub right: Option<Box<Node>>
 }
+#[allow(unused)]
 impl Node
 {
     fn insert(&mut self, insert_left: bool, kind: ASTNodeType, new_val: Option<String>)

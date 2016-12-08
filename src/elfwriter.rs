@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::io::prelude::*;
 use std::fs::File;
 use bytewriter::ByteWriter;
 
@@ -163,13 +162,9 @@ impl ElfProgramHeader {
         self
     }
 
-    pub fn set_filesz(&mut self, file_size: u64) -> &mut ElfProgramHeader {
-        self.p_filesz = file_size;
-        self
-    }
-
-    pub fn set_memsz(&mut self, mem_size: u64) -> &mut ElfProgramHeader {
-        self.p_memsz = mem_size;
+    pub fn set_size(&mut self, size: u64) -> &mut ElfProgramHeader {
+        self.p_filesz = size;
+        self.p_memsz = size;
         self
     }
 
@@ -187,10 +182,6 @@ impl ElfProgramHeader {
         self.p_filesz.write(output_file);
         self.p_memsz.write(output_file);
         self.p_align.write(output_file);
-        // Pad 0s to the next 0x10, to make things easier to debug/calc for now
-        // todo: remove padding
-        //let pad: u64 = 0x0;
-        //pad.write(output_file);
         self
     }
 
