@@ -44,11 +44,16 @@ impl<'a> Parser<'a>
 
     fn start(&mut self) -> Option<Node> {
         let ass = self.assignment();
-        if ass.is_some() {
+        if ass.is_some() && self.terminator() {
             return ass;
-        } else {
-            return None;
         }
+
+        let fun = self.funcall();
+        if fun.is_some() && self.terminator() {
+            return fun;
+        }
+
+        return None;
     }
 
     fn error(&self) {
@@ -74,7 +79,7 @@ impl<'a> Parser<'a>
 
     fn integer(&mut self) -> Option<Node> {
         if let Some(t) = self.consume_token(Tokens::Integer) {
-            return Some(self.make_node(ASTType::Constant_Int, Some(t.get_val())));
+            return Some(self.make_node(ASTType::ConstantInt, Some(t.get_val())));
         } else {
             return None;
         }
@@ -96,16 +101,48 @@ impl<'a> Parser<'a>
 
         let int = self.integer();
         match int {
-            Some(r) => x.append_r(ASTType::Constant_Int, r),
+            Some(r) => x.append_r(ASTType::ConstantInt, r),
             None    => return None
-        }
-
-        if !self.terminator() {
-            return None;
         }
 
         // Parse OK, return expr tree
         return Some(x);
+    }
+
+    fn funcall(&mut self) -> Option<Node> {
+        if let Some(t) = self.consume_token(Tokens::FunctionCall) {
+            let mut funcall = self.make_node(ASTType::FunctionCall, Some(t.get_val()));
+
+            if self.consume(Tokens::ParenOpen) {
+                if let Some(function_with_params) = self.append_param_list(funcall) {
+                    return Some(function_with_params);
+                }
+            }
+        }
+
+        return None;
+    }
+
+    // Recurse over param list, appending function params to left subtree (for now)
+    fn append_param_list(&mut self, mut node_list: Node) -> Option<Node> {
+        if self.consume(Tokens::ParenClose) {
+            return Some(node_list);
+
+        } else if let Some(param) = self.consume_token(Tokens::Integer) {
+            node_list.append_l(ASTType::ConstantInt, self.make_node(ASTType::ConstantInt, Some(param.get_val())));
+
+            if let Some(left_subtree) = node_list.get_left() {
+                self.append_param_list(left_subtree);
+                return Some(node_list);
+            }
+        }
+
+        panic!("Something unexpected is in the function param list");
+        return None;
+    }
+
+    fn is_builtin(&mut self) {
+        unimplemented!();
     }
 
     fn terminator(&mut self) -> bool {

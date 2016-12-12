@@ -7,10 +7,11 @@
 pub enum ASTNodeType {
     Assignment,
     Variable,
-    Constant_Int
+    ConstantInt,
+    FunctionCall
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Node
 {
     pub kind:  ASTNodeType,
@@ -85,5 +86,14 @@ impl Node
     pub fn has_right(&self) -> bool
     {
         return self.right.is_some();
+    }
+
+    pub fn get_left(&self) -> Option<Node> {
+        if let Some(left) = self.left.clone() {
+            let unboxed_left: Node = *left;
+            Some(unboxed_left)
+        } else {
+            None
+        }
     }
 }

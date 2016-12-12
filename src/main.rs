@@ -25,7 +25,7 @@ fn main() {
     let ast = parser::parse(&tokens);
     match ast {
         Some(tree) => generator::generate(tree, "out.bin"),
-        None       => panic!("nop")
+        None       => panic!("No valid AST generated")
     }
 }
 

@@ -26,7 +26,7 @@ pub struct Token {
 }
 impl Default for Token {
     fn default() -> Token {
-        Token { t_type: TokenType::Unknown, t_val: String::new()}
+        Token {t_type: TokenType::Unknown, t_val: String::new()}
     }
 }
 impl Token {
@@ -39,7 +39,7 @@ impl Token {
 }
 
 pub fn scan(program: String) -> Vec<Token> {
-    
+
     let mut chars = program.chars().peekable();
     let mut tokens = Vec::new();
 
@@ -72,7 +72,7 @@ pub fn scan(program: String) -> Vec<Token> {
                     };
                 }
 
-                Some(Token{ t_type: sub_match, t_val: var_string})
+                Some(Token{t_type: sub_match, t_val: var_string})
             },
             x if x.is_numeric() => {
                 let mut var_string = String::new();
@@ -81,7 +81,7 @@ pub fn scan(program: String) -> Vec<Token> {
                 loop {
                     match chars.peek() {
                         Some(&next) => {
-                            match next { 
+                            match next {
                                 x if x.is_numeric() => {
                                     var_string.push(next);
                                     chars.next();
@@ -100,26 +100,26 @@ pub fn scan(program: String) -> Vec<Token> {
                     None => 0
                 };
 
-                Some(Token { t_type: TokenType::Integer, t_val: num_val.to_string()})
+                Some(Token {t_type: TokenType::Integer, t_val: num_val.to_string()})
             },
             ' ' | '\n'  => None,
-            ';' => Some(Token { t_type: TokenType::Terminator, ..Default::default()}),
-            '+' => Some(Token { t_type: TokenType::Add, ..Default::default()}),
-            '-' => Some(Token { t_type: TokenType::Subtract, ..Default::default()}),
-            '*' => Some(Token { t_type: TokenType::Multiply, ..Default::default()}),
-            '/' => Some(Token { t_type: TokenType::Divide, ..Default::default()}),
-            '%' => Some(Token { t_type: TokenType::Modulus, ..Default::default()}),
-            '^' => Some(Token { t_type: TokenType::Exponent, ..Default::default()}),
-            '=' => Some(Token { t_type: TokenType::EqualSign, ..Default::default()}), // todo: equality
-            '(' => Some(Token { t_type: TokenType::ParenOpen, ..Default::default()}),
-            ')' => Some(Token { t_type: TokenType::ParenClose, ..Default::default()}),
-            '{' => Some(Token { t_type: TokenType::BraceOpen, ..Default::default()}),
-            '}' => Some(Token { t_type: TokenType::BraceClose, ..Default::default()}),
-            _ => Some(Token { t_type: TokenType::Unknown, ..Default::default()})
+            ';' => Some(Token {t_type: TokenType::Terminator, ..Default::default()}),
+            '+' => Some(Token {t_type: TokenType::Add, ..Default::default()}),
+            '-' => Some(Token {t_type: TokenType::Subtract, ..Default::default()}),
+            '*' => Some(Token {t_type: TokenType::Multiply, ..Default::default()}),
+            '/' => Some(Token {t_type: TokenType::Divide, ..Default::default()}),
+            '%' => Some(Token {t_type: TokenType::Modulus, ..Default::default()}),
+            '^' => Some(Token {t_type: TokenType::Exponent, ..Default::default()}),
+            '=' => Some(Token {t_type: TokenType::EqualSign, ..Default::default()}), // todo: equality
+            '(' => Some(Token {t_type: TokenType::ParenOpen, ..Default::default()}),
+            ')' => Some(Token {t_type: TokenType::ParenClose, ..Default::default()}),
+            '{' => Some(Token {t_type: TokenType::BraceOpen, ..Default::default()}),
+            '}' => Some(Token {t_type: TokenType::BraceClose, ..Default::default()}),
+            _   => Some(Token {t_type: TokenType::Unknown, ..Default::default()})
         };
 
         if tok.is_some() {
-            tokens.push(tok.unwrap());      
+            tokens.push(tok.unwrap());
         }
     }
 
