@@ -11,7 +11,9 @@ pub fn generate(ast: Node, output_file: &str) {
     // Write to asm file
     let file = make_output_file(output_file);
     if file.is_ok() {
-        write_elf(&mut file.unwrap());
+        let const_data = vec![0x4F, 0x4B, 0x0A];
+        let assembler = build_asm();
+        write_elf(&mut file.unwrap(), const_data, assembler);
     } else {
         panic!("Couldn't write file");
     }
@@ -22,7 +24,7 @@ fn make_output_file(output_file: &str) -> Result<File, io::Error> {
     Ok(buff)
 }
 
-fn write_elf(output_file: &mut File) {
+fn write_elf(output_file: &mut File, const_data: Vec<u8>, assembler: Assembler) {
     let mut elf_header = elfwriter::ElfHeader::new();
     let elf_text_program_header = elfwriter::ElfProgramHeader::new();
     let mut elf_data_program_header = elfwriter::ElfProgramHeader::new();
@@ -30,7 +32,6 @@ fn write_elf(output_file: &mut File) {
     let section_header_count: u16 =  4;
     let section_header_size: u16 = 64;
     let asm_offset = 176; // ELF header (64) + .text phead (56) + .data phead (56)
-    let assembler = build_asm();
     let asm_length = assembler.get_length();
     let asm_data = assembler.get_output();
     let section_header_offset: u64 = asm_offset + asm_length;
@@ -50,7 +51,7 @@ fn write_elf(output_file: &mut File) {
     // mandatory "null" section header first
     let mut sh_null = elfwriter::ElfSectionHeader::new();
     sh_null
-        .set_flags(0)
+        .set_flags(0x0)
         .set_align(0x0)
         .set_size(0x0)
         .set_type(0x00000000);
@@ -68,8 +69,7 @@ fn write_elf(output_file: &mut File) {
         .set_type(0x01000000);
 
     let sh_data_offset: u64 = section_header_offset + (section_header_count as u64 * section_header_size as u64);
-    let sh_data_length: u64 = 3;
-    let datastr: [u8; 3] = [0x4F, 0x4B, 0x0A];
+    let sh_data_length: u64 = const_data.len() as u64;
 
     let mut sh_data = elfwriter::ElfSectionHeader::new();
     sh_data
@@ -108,7 +108,7 @@ fn write_elf(output_file: &mut File) {
     sh_text.write(output_file);
     sh_data.write(output_file);
     sh_strtab.write(output_file);
-    datastr.write(output_file);
+    const_data.as_slice().write(output_file);
     elf_string_table.write(output_file);
 }
 
