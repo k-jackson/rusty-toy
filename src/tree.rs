@@ -3,7 +3,7 @@
 ///t.insert_r(Some("Z".to_string()));
 
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum ASTNodeType {
     Assignment,
     Variable,
@@ -88,12 +88,73 @@ impl Node
         return self.right.is_some();
     }
 
-    pub fn get_left(&self) -> Option<Node> {
+    pub fn get_left(&self) -> Option<Node>
+    {
         if let Some(left) = self.left.clone() {
             let unboxed_left: Node = *left;
             Some(unboxed_left)
         } else {
             None
         }
+    }
+
+    pub fn get_right(&self) -> Option<Node>
+    {
+        if let Some(right) = self.right.clone() {
+            let unboxed_right: Node = *right;
+            Some(unboxed_right)
+        } else {
+            None
+        }
+    }
+
+    pub fn traverse_preorder(&self) -> Vec<&Node>
+    {
+        let mut res: Vec<&Node> = Vec::new();
+        let mut stack: Vec<&Node> = Vec::new();
+
+        stack.push(self);
+        while !stack.is_empty() {
+            let node = stack.pop().unwrap();
+            res.push(node);
+            match node.right {
+                None => {},
+                Some(box ref n) => stack.push(n)
+            }
+            match node.left {
+                None => {},
+                Some(box ref n) => stack.push(n)
+            }
+        }
+
+        res
+    }
+
+    pub fn traverse_postorder(&self) -> Vec<&Node>
+    {
+        let mut res: Vec<&Node> = Vec::new();
+        let mut stack: Vec<&Node> = Vec::new();
+
+        stack.push(self);
+        while !stack.is_empty() {
+            let node = stack.pop().unwrap();
+            match node.left {
+                None => {},
+                Some(box ref n) => stack.push(n)
+            }
+            match node.right {
+                None => {},
+                Some(box ref n) => stack.push(n)
+            }
+            res.push(node);
+        }
+
+        let rev_iter = res.iter().rev();
+        let mut rev: Vec<&Node> = Vec::new();
+        for elem in rev_iter {
+            rev.push(elem);
+        }
+
+        rev
     }
 }
