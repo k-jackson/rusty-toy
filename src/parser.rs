@@ -2,15 +2,21 @@ use scanner::TokenType as Tokens;
 use scanner::Token as Token;
 use tree::Node as Node;
 use tree::ASTNodeType as ASTType;
+use constdata::ConstData as ConstData;
 
-struct Parser<'a>
+pub struct Parser<'a>
 {
     tokens: &'a Vec<Token>,
-    index: usize
+    index: usize,
+    const_data: ConstData
 }
 
 impl<'a> Parser<'a>
 {
+    pub fn new(toks: &Vec<Token>) -> Parser {
+        Parser { tokens: toks, index: 0, const_data: ConstData::new() }
+    }
+
     // todo: split up a peek from consume(), for terminals?
     fn consume(&mut self, token: Tokens) -> bool {
 
@@ -42,7 +48,7 @@ impl<'a> Parser<'a>
         }
     }
 
-    fn start(&mut self) -> Option<Node> {
+    pub fn start(&mut self) -> Option<Node> {
         let ass = self.assignment();
         if ass.is_some() && self.terminator() {
             return ass;
@@ -79,6 +85,7 @@ impl<'a> Parser<'a>
 
     fn integer(&mut self) -> Option<Node> {
         if let Some(t) = self.consume_token(Tokens::Integer) {
+            self.const_data.insert(&t.get_val());
             return Some(self.make_node(ASTType::ConstantInt, Some(t.get_val())));
         } else {
             return None;
@@ -123,16 +130,17 @@ impl<'a> Parser<'a>
         return None;
     }
 
-    // Recurse over param list, appending function params to left subtree (for now)
+    // Recurse over param list, appending function params to right subtree
     fn append_param_list(&mut self, mut node_list: Node) -> Option<Node> {
         if self.consume(Tokens::ParenClose) {
             return Some(node_list);
 
         } else if let Some(param) = self.consume_token(Tokens::Integer) {
-            node_list.append_l(ASTType::ConstantInt, self.make_node(ASTType::ConstantInt, Some(param.get_val())));
+            node_list.append_r(ASTType::ConstantInt, self.make_node(ASTType::ConstantInt, Some(param.get_val())));
+            self.const_data.insert(&param.get_val());
 
-            if let Some(left_subtree) = node_list.get_left() {
-                self.append_param_list(left_subtree);
+            if let Some(right_subtree) = node_list.get_right() {
+                self.append_param_list(right_subtree);
                 return Some(node_list);
             }
         }
@@ -156,20 +164,8 @@ impl<'a> Parser<'a>
     fn make_node<'b>(&'b self, ast_type: ASTType, node_val: Option<String>) -> Node {
         return Node {kind: ast_type, val: node_val, left: None, right: None};
     }
-}
 
-pub fn parse(tokens: &Vec<Token>) -> Option<Node>
-{
-    let mut p = Parser { tokens: tokens, index: 0 };
-    let parse_result = p.start();
-
-    println!("{:#?}",parse_result);
-    if parse_result.is_some() {
-        return parse_result;
-    } else {
-        println!("Parsing failed!");
-        return None;
+    pub fn get_const_data(&self) -> &ConstData {
+        &self.const_data
     }
 }
-
-

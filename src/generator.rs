@@ -1,30 +1,76 @@
 use tree::Node as Node;
+use tree::ASTNodeType as ASTNodeType;
 use elfwriter;
 use std::io;
 use std::fs::File as File;
 use bytewriter::ByteWriter;
 use asm::Assembler as Assembler;
+use constdata::ConstData as ConstData;
 
-pub fn generate(ast: Node, output_file: &str) {
+pub fn generate(ast: Node, const_data: &ConstData, output_file: &str) {
     // Traverse AST, output magic
 
     // Write to asm file
     let file = make_output_file(output_file);
     if file.is_ok() {
-        let const_data = vec![0x4F, 0x4B, 0x0A];
-        let assembler = build_asm();
-        write_elf(&mut file.unwrap(), const_data, assembler);
+
+        write_elf(&mut file.unwrap(), ast, const_data);
     } else {
         panic!("Couldn't write file");
     }
 }
 
 fn make_output_file(output_file: &str) -> Result<File, io::Error> {
-    let buff = try!(File::create(output_file));
+    let buff = File::create(output_file)?;
     Ok(buff)
 }
 
-fn write_elf(output_file: &mut File, const_data: Vec<u8>, assembler: Assembler) {
+fn build_asm(ast: Node, const_data: &ConstData) -> Assembler {
+    let mut asm = Assembler {output: Vec::new(), length: 0, const_data: const_data};
+    walk_ast(ast, &mut asm);
+
+    //asm.print_str(0xe601800000000000, 0x0300000000000000);
+    asm.exit();
+    asm
+}
+
+fn walk_ast(ast: Node, asm: &mut Assembler) {
+    let mut operands: Vec<&Node> = Vec::new();
+    let traversal = ast.traverse_postorder();
+    for n in traversal {
+        println!("{:?}", n.kind);
+        match n.kind {
+            ASTNodeType::FunctionCall => {
+                let func_name: String = n.val.clone().unwrap();
+                let func_param: String = operands.pop().unwrap().clone().val.unwrap();
+
+                if is_function_builtin(&func_name) {
+                    asm.builtin_function(&func_name, &func_param);
+                }
+            },
+            ASTNodeType::Assignment => {},
+            ASTNodeType::ConstantInt => {
+                operands.push(n)
+            },
+            ASTNodeType::Variable => {
+                operands.push(n)
+            }
+        }
+    }
+}
+
+fn is_function_builtin(function_name: &str) -> bool {
+    match function_name {
+        "print" => true,
+        _ => false
+    }
+}
+
+fn write_elf(output_file: &mut File, ast: Node, const_data: &ConstData) {
+    //let const_data = vec![0x4F, 0x4B, 0x0A];
+    let assembler = build_asm(ast, &const_data);
+    let const_section_data = const_data.get_data();
+
     let mut elf_header = elfwriter::ElfHeader::new();
     let elf_text_program_header = elfwriter::ElfProgramHeader::new();
     let mut elf_data_program_header = elfwriter::ElfProgramHeader::new();
@@ -69,7 +115,7 @@ fn write_elf(output_file: &mut File, const_data: Vec<u8>, assembler: Assembler) 
         .set_type(0x01000000);
 
     let sh_data_offset: u64 = section_header_offset + (section_header_count as u64 * section_header_size as u64);
-    let sh_data_length: u64 = const_data.len() as u64;
+    let sh_data_length: u64 = const_section_data.len() as u64;
 
     let mut sh_data = elfwriter::ElfSectionHeader::new();
     sh_data
@@ -108,13 +154,6 @@ fn write_elf(output_file: &mut File, const_data: Vec<u8>, assembler: Assembler) 
     sh_text.write(output_file);
     sh_data.write(output_file);
     sh_strtab.write(output_file);
-    const_data.as_slice().write(output_file);
+    const_section_data.as_slice().write(output_file);
     elf_string_table.write(output_file);
-}
-
-fn build_asm() -> Assembler {
-    let mut asm = Assembler {output: Vec::new(), length: 0};
-    asm.print_str(0xe601800000000000, 0x0300000000000000);
-    asm.exit();
-    asm
 }

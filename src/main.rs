@@ -1,9 +1,12 @@
+#![feature(box_syntax, box_patterns)]
+
 extern crate byteorder;
 
 mod scanner;
 mod parser;
 mod tree;
 mod generator;
+mod constdata;
 mod elfwriter;
 mod bytewriter;
 mod asm;
@@ -14,6 +17,8 @@ use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+use constdata::ConstData as ConstData;
+use parser::Parser as Parser;
 
 fn main() {
     let program = read();
@@ -22,10 +27,16 @@ fn main() {
         println!("{:?}", t);
     }
 
-    let ast = parser::parse(&tokens);
-    match ast {
-        Some(tree) => generator::generate(tree, "out.bin"),
-        None       => panic!("No valid AST generated")
+    let mut p = Parser::new(&tokens);
+    let ast = p.start();
+    let const_data = p.get_const_data();
+
+    println!("{:#?}", ast);
+    if ast.is_some() {
+        match ast {
+            Some(tree) => generator::generate(tree, const_data, "out.bin"),
+            None => panic!("No valid AST generated")
+        }
     }
 }
 
