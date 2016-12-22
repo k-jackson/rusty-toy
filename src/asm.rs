@@ -21,7 +21,7 @@ impl<'a> Assembler<'a> {
     pub fn builtin_function(&mut self, func_name: &str, param: &str) {
         match func_name {
             "print" => {
-                let index = self.const_data.get_const_index(param);
+                let index = self.const_data.get_const_address(param);
                 let length = self.const_data.get_const_length(param);
                 self.print_str(index, length);
             },

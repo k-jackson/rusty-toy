@@ -28,9 +28,8 @@ fn make_output_file(output_file: &str) -> Result<File, io::Error> {
 fn build_asm(ast: Node, const_data: &ConstData) -> Assembler {
     let mut asm = Assembler {output: Vec::new(), length: 0, const_data: const_data};
     walk_ast(ast, &mut asm);
-
-    //asm.print_str(0xe601800000000000, 0x0300000000000000);
     asm.exit();
+
     asm
 }
 
@@ -38,7 +37,6 @@ fn walk_ast(ast: Node, asm: &mut Assembler) {
     let mut operands: Vec<&Node> = Vec::new();
     let traversal = ast.traverse_postorder();
     for n in traversal {
-        println!("{:?}", n.kind);
         match n.kind {
             ASTNodeType::FunctionCall => {
                 let func_name: String = n.val.clone().unwrap();
@@ -67,22 +65,28 @@ fn is_function_builtin(function_name: &str) -> bool {
 }
 
 fn write_elf(output_file: &mut File, ast: Node, const_data: &ConstData) {
-    //let const_data = vec![0x4F, 0x4B, 0x0A];
-    let assembler = build_asm(ast, &const_data);
     let const_section_data = const_data.get_data();
 
     let mut elf_header = elfwriter::ElfHeader::new();
     let elf_text_program_header = elfwriter::ElfProgramHeader::new();
     let mut elf_data_program_header = elfwriter::ElfProgramHeader::new();
 
+    // ELF header (64) + .text phead (56) + .data phead (56)
+    let sh_data_offset: u64 = 176;
+    let sh_data_length: u64 = const_section_data.len() as u64;
+
     let section_header_count: u16 =  4;
     let section_header_size: u16 = 64;
-    let asm_offset = 176; // ELF header (64) + .text phead (56) + .data phead (56)
+
+    let asm_offset = sh_data_offset + sh_data_length;
+    let assembler = build_asm(ast, &const_data);
     let asm_length = assembler.get_length();
     let asm_data = assembler.get_output();
+
     let section_header_offset: u64 = asm_offset + asm_length;
 
-    elf_header.set_entry(0xb000400000000000);
+    // Instructions start at end of .data
+    elf_header.set_entry(0xb000400000000000 + sh_data_length.to_be());
     elf_header.set_shnum(section_header_count.to_be());
     elf_header.set_shentsize(section_header_size.to_be());
     elf_header.set_shoff(section_header_offset.to_be());
@@ -102,21 +106,6 @@ fn write_elf(output_file: &mut File, ast: Node, const_data: &ConstData) {
         .set_size(0x0)
         .set_type(0x00000000);
 
-    let sh_text_offset: u64 = asm_offset;
-    let sh_text_length: u64 = asm_length;
-    let mut sh_text = elfwriter::ElfSectionHeader::new();
-    sh_text
-        .set_flags(0x0600000000000000)
-        .set_name(0x0b000000)
-        .set_align(0x1000000000000000)
-        .set_addr(0x8000400000000000)
-        .set_size(sh_text_length.to_be())
-        .set_offset(sh_text_offset.to_be())
-        .set_type(0x01000000);
-
-    let sh_data_offset: u64 = section_header_offset + (section_header_count as u64 * section_header_size as u64);
-    let sh_data_length: u64 = const_section_data.len() as u64;
-
     let mut sh_data = elfwriter::ElfSectionHeader::new();
     sh_data
         .set_flags(0x0300000000000000)
@@ -127,8 +116,21 @@ fn write_elf(output_file: &mut File, ast: Node, const_data: &ConstData) {
         .set_offset(sh_data_offset.to_be())
         .set_type(0x01000000);
 
+    let sh_text_offset: u64 = asm_offset;
+    let sh_text_length: u64 = asm_length;
+
+    let mut sh_text = elfwriter::ElfSectionHeader::new();
+    sh_text
+        .set_flags(0x0600000000000000)
+        .set_name(0x0b000000)
+        .set_align(0x1000000000000000)
+        .set_addr(0x8000400000000000)
+        .set_size(sh_text_length.to_be())
+        .set_offset(sh_text_offset.to_be())
+        .set_type(0x01000000);
+
     // shstrtab
-    let sh_strtab_offset: u64 = sh_data_offset + sh_data_length;
+    let sh_strtab_offset: u64 = section_header_offset + (section_header_count as u64 * section_header_size as u64);
     let mut sh_strtab = elfwriter::ElfSectionHeader::new();
     sh_strtab
         .set_flags(0)
@@ -149,11 +151,11 @@ fn write_elf(output_file: &mut File, ast: Node, const_data: &ConstData) {
     elf_header.write(output_file);
     elf_text_program_header.write(output_file);
     elf_data_program_header.write(output_file);
+    const_section_data.as_slice().write(output_file);
     asm_data.as_slice().write(output_file);
     sh_null.write(output_file);
-    sh_text.write(output_file);
     sh_data.write(output_file);
+    sh_text.write(output_file);
     sh_strtab.write(output_file);
-    const_section_data.as_slice().write(output_file);
     elf_string_table.write(output_file);
 }
