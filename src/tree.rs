@@ -4,17 +4,17 @@
 
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub enum ASTNodeType {
+pub enum ASTNodeKind {
     Assignment,
     Variable,
-    ConstantInt,
+    Integer,
     FunctionCall
 }
 
 #[derive(Debug, Clone)]
 pub struct Node
 {
-    pub kind:  ASTNodeType,
+    pub kind: ASTNodeKind,
     pub val:   Option<String>,
     pub left:  Option<Box<Node>>,
     pub right: Option<Box<Node>>
@@ -22,7 +22,7 @@ pub struct Node
 #[allow(unused)]
 impl Node
 {
-    fn insert(&mut self, insert_left: bool, kind: ASTNodeType, new_val: Option<String>)
+    fn insert(&mut self, insert_left: bool, kind: ASTNodeKind, new_val: Option<String>)
     {
         let target_node = if insert_left { &mut self.left } else { &mut self.right };
         match target_node {
@@ -35,17 +35,17 @@ impl Node
         }
     }
 
-    pub fn insert_l(&mut self, kind: ASTNodeType, new_val: Option<String>)
+    pub fn insert_l(&mut self, kind: ASTNodeKind, new_val: Option<String>)
     {
         self.insert(true, kind, new_val);
     }
 
-    pub fn insert_r(&mut self, kind: ASTNodeType, new_val: Option<String>)
+    pub fn insert_r(&mut self, kind: ASTNodeKind, new_val: Option<String>)
     {
         self.insert(false, kind, new_val);
     }
 
-    fn append(&mut self, insert_left: bool, kind: ASTNodeType, new_node: Node)
+    fn append(&mut self, insert_left: bool, kind: ASTNodeKind, new_node: Node)
     {
         let target_node = if insert_left { &mut self.left } else { &mut self.right };
         match target_node {
@@ -57,17 +57,17 @@ impl Node
         }
     }
 
-    pub fn append_l(&mut self, kind: ASTNodeType, new_node: Node)
+    pub fn append_l(&mut self, kind: ASTNodeKind, new_node: Node)
     {
         self.append(true, kind, new_node);
     }
 
-    pub fn append_r(&mut self, kind: ASTNodeType, new_node: Node)
+    pub fn append_r(&mut self, kind: ASTNodeKind, new_node: Node)
     {
         self.append(false, kind, new_node);
     }
 
-    pub fn get_kind(&self) -> ASTNodeType
+    pub fn get_kind(&self) -> ASTNodeKind
     {
         // Copy-out for now
         return self.kind;

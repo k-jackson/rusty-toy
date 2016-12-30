@@ -1,11 +1,12 @@
 use tree::Node as Node;
-use tree::ASTNodeType as ASTNodeType;
+use tree::ASTNodeKind as ASTNodeKind;
 use elfwriter;
 use std::io;
 use std::fs::File as File;
 use bytewriter::ByteWriter;
 use asm::Assembler as Assembler;
 use constdata::ConstData as ConstData;
+use std::str::FromStr;
 
 pub fn generate(ast: Node, const_data: &ConstData, output_file: &str) {
     // Traverse AST, output magic
@@ -38,7 +39,7 @@ fn walk_ast(ast: Node, asm: &mut Assembler) {
     let traversal = ast.traverse_postorder();
     for n in traversal {
         match n.kind {
-            ASTNodeType::FunctionCall => {
+            ASTNodeKind::FunctionCall => {
                 let func_name: String = n.val.clone().unwrap();
                 let func_param: String = operands.pop().unwrap().clone().val.unwrap();
 
@@ -46,11 +47,17 @@ fn walk_ast(ast: Node, asm: &mut Assembler) {
                     asm.builtin_function(&func_name, &func_param);
                 }
             },
-            ASTNodeType::Assignment => {},
-            ASTNodeType::ConstantInt => {
+            // Assignment statements have the variable on the left (thus lowest of two stack entries)
+            ASTNodeKind::Assignment => {
+                let value: &str = &operands.pop().unwrap().clone().val.unwrap();
+                let variable: String = operands.pop().unwrap().clone().val.unwrap();
+                asm.assignment_statement(&variable, u64::from_str(value).unwrap());
+
+            },
+            ASTNodeKind::Integer => {
                 operands.push(n)
             },
-            ASTNodeType::Variable => {
+            ASTNodeKind::Variable => {
                 operands.push(n)
             }
         }

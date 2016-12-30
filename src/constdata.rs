@@ -51,4 +51,8 @@ impl ConstData
     pub fn get_const_address(&self, constant: &str) -> u64 {
         self.data_section_address + *self.indexes.get(constant).unwrap()
     }
+
+    pub fn get_end_of_section(&self) -> u64 {
+        self.data_section_address + self.length
+    }
 }

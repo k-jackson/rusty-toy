@@ -1,7 +1,7 @@
 use scanner::TokenType as Tokens;
 use scanner::Token as Token;
 use tree::Node as Node;
-use tree::ASTNodeType as ASTType;
+use tree::ASTNodeKind as ASTType;
 use constdata::ConstData as ConstData;
 
 pub struct Parser<'a>
@@ -86,7 +86,7 @@ impl<'a> Parser<'a>
     fn integer(&mut self) -> Option<Node> {
         if let Some(t) = self.consume_token(Tokens::Integer) {
             self.const_data.insert(&t.get_val());
-            return Some(self.make_node(ASTType::ConstantInt, Some(t.get_val())));
+            return Some(self.make_node(ASTType::Integer, Some(t.get_val())));
         } else {
             return None;
         }
@@ -108,7 +108,7 @@ impl<'a> Parser<'a>
 
         let int = self.integer();
         match int {
-            Some(r) => x.append_r(ASTType::ConstantInt, r),
+            Some(r) => x.append_r(ASTType::Integer, r),
             None    => return None
         }
 
@@ -136,7 +136,7 @@ impl<'a> Parser<'a>
             return Some(node_list);
 
         } else if let Some(param) = self.consume_token(Tokens::Integer) {
-            node_list.append_r(ASTType::ConstantInt, self.make_node(ASTType::ConstantInt, Some(param.get_val())));
+            node_list.append_r(ASTType::Integer, self.make_node(ASTType::Integer, Some(param.get_val())));
             self.const_data.insert(&param.get_val());
 
             if let Some(right_subtree) = node_list.get_right() {

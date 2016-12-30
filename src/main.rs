@@ -12,6 +12,7 @@ mod bytewriter;
 mod asm;
 mod asm_macro;
 mod asm_opcode;
+mod symboltable;
 
 use std::error::Error;
 use std::fs::File;

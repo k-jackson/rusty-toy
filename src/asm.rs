@@ -1,6 +1,6 @@
 use asm_macro as Macro;
 use tree::Node as Node;
-use tree::ASTNodeType as ASTNodeType;
+use tree::ASTNodeKind as ASTNodeType;
 use constdata::ConstData as ConstData;
 
 pub struct Assembler<'a> {
@@ -27,6 +27,11 @@ impl<'a> Assembler<'a> {
             },
             _ => {}
         }
+    }
+
+    pub fn assignment_statement(&mut self, variable: &str, value: u64) {
+        let offset: u64 = self.const_data.get_end_of_section();
+        self.length += Macro::store_int(&mut self.output, offset, value);
     }
 
     pub fn get_length(&self) -> u64 {

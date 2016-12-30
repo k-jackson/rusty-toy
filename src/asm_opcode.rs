@@ -48,6 +48,7 @@ fn get_val_slice(val: u64) -> [u8; 8] {
     let mut val_vec = vec![];
     val_vec.write_u64::<BigEndian>(val).unwrap();
     let mut val_slice = [0; 8];
+
     for i in 0..8 {
         val_slice[i] = val_vec[i];
     }
@@ -60,6 +61,7 @@ fn get_val_slice_32(val: u32) -> [u8; 4] {
     let mut val_vec = vec![];
     val_vec.write_u32::<BigEndian>(val).unwrap();
     let mut val_slice = [0; 4];
+
     for i in 0..4 {
         val_slice[i] = val_vec[i];
     }
@@ -86,9 +88,9 @@ fn get_rex_opcode_reg(reg: &Register) -> u8 {
 
 pub fn mov_im(reg: Register, val: u64) -> [u8; 10] {
     let mov_op: u8 = 0xb8 + get_register_operand(&reg);
-
     let val_slice = get_val_slice(val);
     let mut opcode = [0; 10];
+
     opcode[0] = 0x48 + get_rex_opcode_reg(&reg); // REX 64-bit operand
     opcode[1] = mov_op;
     for i in 2..10 {
@@ -100,12 +102,40 @@ pub fn mov_im(reg: Register, val: u64) -> [u8; 10] {
 
 pub fn mov_im_32(reg: Register, val: u32) -> [u8; 5] {
     let mov_op: u8 = 0xb8 + get_register_operand(&reg);
-
     let val_slice = get_val_slice_32(val);
     let mut opcode = [0; 5];
+
     opcode[0] = mov_op;
     for i in 1..5 {
         opcode[i] = val_slice[i - 1];
+    }
+
+    opcode
+}
+
+pub fn mov_rax_to_offset(offset: u64) -> [u8; 10] {
+    let mov_op: u8 = 0xA3;
+    let val_slice = get_val_slice(offset);
+    let mut opcode = [0; 10];
+
+    opcode[0] = 0x48;
+    opcode[1] = mov_op;
+    for i in 2..10 {
+        opcode[i] = val_slice[i - 2];
+    }
+
+    opcode
+}
+
+pub fn mov_offset_to_rax(offset: u64) -> [u8; 10] {
+    let mov_op: u8 = 0xA1;
+    let val_slice = get_val_slice(offset);
+    let mut opcode = [0; 10];
+
+    opcode[0] = 0x48;
+    opcode[1] = mov_op;
+    for i in 2..10 {
+        opcode[i] = val_slice[i - 2];
     }
 
     opcode
