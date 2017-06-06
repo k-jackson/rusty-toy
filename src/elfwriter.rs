@@ -48,6 +48,7 @@ impl ElfHeader {
         }
     }
 
+    #[allow(unused)]
     pub fn set_type(&mut self, is_executable: bool) -> &mut ElfHeader {
         self.e_type = if is_executable { 0x0200 } else { 0x0100 };
         self
@@ -58,11 +59,13 @@ impl ElfHeader {
         self
     }
 
+    #[allow(unused)]
     pub fn set_phoff(&mut self, phoff: u64) -> &mut ElfHeader {
         self.e_phoff = phoff;
         self
     }
 
+    #[allow(unused)]
     pub fn set_phentsize(&mut self, phentsize: u16) -> &mut ElfHeader {
         self.e_phentsize = phentsize;
         self
@@ -83,6 +86,7 @@ impl ElfHeader {
         self
     }
 
+    #[allow(unused)]
     pub fn set_shstrndx(&mut self, shstrndx: u16) -> &mut ElfHeader {
         self.e_shstrndx = shstrndx;
         self
@@ -107,10 +111,12 @@ impl ElfHeader {
         self
     }
 
+    #[allow(unused)]
     pub fn get_shentsize(&self) -> u16 {
         self.e_shentsize
     }
 
+    #[allow(unused)]
     pub fn get_size() -> u64 {
         64
     }
@@ -146,6 +152,7 @@ impl ElfProgramHeader {
         self
     }
 
+    #[allow(unused)]
     pub fn set_type(&mut self, ph_type: u32) -> &mut ElfProgramHeader {
         self.p_type = ph_type;
         self
@@ -168,6 +175,7 @@ impl ElfProgramHeader {
         self
     }
 
+    #[allow(unused)]
     pub fn set_align(&mut self, alignment: u64) -> &mut ElfProgramHeader {
         self.p_align = alignment;
         self
@@ -185,6 +193,7 @@ impl ElfProgramHeader {
         self
     }
 
+    #[allow(unused)]
     pub fn get_size() -> u64 {
         56
     }
@@ -268,6 +277,7 @@ impl ElfSectionHeader {
         self.sh_entsize.write(output_file);
     }
 
+    #[allow(unused)]
     pub fn get_size() -> u64 {
         64
     }
@@ -307,6 +317,7 @@ impl ElfStringTable {
         self
     }
 
+    #[allow(unused)]
     pub fn get_string_index(&self, target: String) -> Option<u64> {
 
         match self.st_string_map.get(&target) {

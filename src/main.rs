@@ -18,7 +18,6 @@ use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use constdata::ConstData as ConstData;
 use parser::Parser as Parser;
 
 fn main() {

@@ -62,9 +62,6 @@ impl<'a> Parser<'a>
         return None;
     }
 
-    fn error(&self) {
-        panic!("died");
-    }
 
     fn variable(&mut self) -> Option<Node> {
 
@@ -118,7 +115,7 @@ impl<'a> Parser<'a>
 
     fn funcall(&mut self) -> Option<Node> {
         if let Some(t) = self.consume_token(Tokens::FunctionCall) {
-            let mut funcall = self.make_node(ASTType::FunctionCall, Some(t.get_val()));
+            let funcall = self.make_node(ASTType::FunctionCall, Some(t.get_val()));
 
             if self.consume(Tokens::ParenOpen) {
                 if let Some(function_with_params) = self.append_param_list(funcall) {
@@ -146,11 +143,6 @@ impl<'a> Parser<'a>
         }
 
         panic!("Something unexpected is in the function param list");
-        return None;
-    }
-
-    fn is_builtin(&mut self) {
-        unimplemented!();
     }
 
     fn terminator(&mut self) -> bool {

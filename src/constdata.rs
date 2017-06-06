@@ -20,6 +20,7 @@ impl ConstData
         }
     }
 
+    #[allow(unused)]
     pub fn set_data_section_offset(&mut self, offset: u64) {
         self.data_section_address += offset.to_le()
     }
@@ -40,6 +41,7 @@ impl ConstData
         &self.data
     }
 
+    #[allow(unused)]
     pub fn get_const_index(&self, constant: &str) -> u64 {
         *self.indexes.get(constant).unwrap()
     }

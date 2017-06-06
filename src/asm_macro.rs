@@ -25,6 +25,7 @@ pub fn store_int(output: &mut Vec<u8>, address: u64, value: u64) -> u64 {
     20
 }
 
+#[allow(dead_code)]
 pub fn load_int(output: &mut Vec<u8>, address: u64) -> u64 {
     output.extend(op::mov_offset_to_rax(address.to_be()).iter());
 

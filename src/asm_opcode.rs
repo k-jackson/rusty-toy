@@ -127,6 +127,7 @@ pub fn mov_rax_to_offset(offset: u64) -> [u8; 10] {
     opcode
 }
 
+#[allow(dead_code)]
 pub fn mov_offset_to_rax(offset: u64) -> [u8; 10] {
     let mov_op: u8 = 0xA1;
     let val_slice = get_val_slice(offset);
