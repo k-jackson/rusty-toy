@@ -8,7 +8,7 @@ use asm::Assembler as Assembler;
 use constdata::ConstData as ConstData;
 use std::str::FromStr;
 
-pub fn generate(ast: Node, const_data: &ConstData, output_file: &str) {
+pub fn generate(ast: Vec<Node>, const_data: &ConstData, output_file: &str) {
     // Traverse AST, output magic
 
     // Write to asm file
@@ -26,9 +26,11 @@ fn make_output_file(output_file: &str) -> Result<File, io::Error> {
     Ok(buff)
 }
 
-fn build_asm(ast: Node, const_data: &ConstData) -> Assembler {
+fn build_asm(ast: Vec<Node>, const_data: &ConstData) -> Assembler {
     let mut asm = Assembler {output: Vec::new(), length: 0, const_data: const_data};
-    walk_ast(ast, &mut asm);
+    for nodes in ast {
+        walk_ast(nodes, &mut asm);
+    }
     asm.exit();
 
     asm
@@ -71,7 +73,7 @@ fn is_function_builtin(function_name: &str) -> bool {
     }
 }
 
-fn write_elf(output_file: &mut File, ast: Node, const_data: &ConstData) {
+fn write_elf(output_file: &mut File, ast: Vec<Node>, const_data: &ConstData) {
     let const_section_data = const_data.get_data();
 
     let mut elf_header = elfwriter::ElfHeader::new();

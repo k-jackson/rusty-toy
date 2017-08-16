@@ -48,18 +48,19 @@ impl<'a> Parser<'a>
         }
     }
 
-    pub fn start(&mut self) -> Option<Node> {
+    pub fn start(&mut self) -> Vec<Node> {
+        let mut ast = vec!();
         let ass = self.assignment();
         if ass.is_some() && self.terminator() {
-            return ass;
+            ast.push(ass.unwrap());
         }
 
         let fun = self.funcall();
         if fun.is_some() && self.terminator() {
-            return fun;
+            ast.push(fun.unwrap());
         }
 
-        return None;
+        return ast;
     }
 
 

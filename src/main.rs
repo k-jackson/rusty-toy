@@ -32,11 +32,10 @@ fn main() {
     let const_data = p.get_const_data();
 
     println!("{:#?}", ast);
-    if ast.is_some() {
-        match ast {
-            Some(tree) => generator::generate(tree, const_data, "out.bin"),
-            None => panic!("No valid AST generated")
-        }
+    if !ast.is_empty() {
+        generator::generate(ast, const_data, "out.bin");
+    } else {
+        panic!("No valid AST generated");
     }
 }
 
