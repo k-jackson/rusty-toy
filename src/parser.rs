@@ -17,7 +17,6 @@ impl<'a> Parser<'a>
         Parser { tokens: toks, index: 0, const_data: ConstData::new() }
     }
 
-    // todo: split up a peek from consume(), for terminals?
     fn consume(&mut self, token: Tokens) -> bool {
 
         if self.index >= self.tokens.len() {
@@ -48,16 +47,53 @@ impl<'a> Parser<'a>
         }
     }
 
+    fn peek(&self) -> Option<Tokens> {
+
+        if (self.index) >= self.tokens.len() {
+            return None
+        } else {
+            return Some(self.tokens[self.index].get_type())
+        }
+    }
+
+    fn peek_ahead(&self) -> Option<Tokens> {
+
+        if (self.index + 1) >= self.tokens.len() {
+            return None
+        } else {
+            return Some(self.tokens[self.index + 1].get_type())
+        }
+    }
+
     pub fn start(&mut self) -> Vec<Node> {
         let mut ast = vec!();
-        let ass = self.assignment();
-        if ass.is_some() && self.terminator() {
-            ast.push(ass.unwrap());
-        }
 
-        let fun = self.funcall();
-        if fun.is_some() && self.terminator() {
-            ast.push(fun.unwrap());
+        let mut last_index = self.index;
+
+        loop {
+            last_index = self.index;
+            let ass = self.assignment();
+            if ass.is_some() && self.terminator() {
+                ast.push(ass.unwrap());
+            }
+
+
+            if let Some(current_token) = self.peek() {
+                match current_token {
+                    Tokens::FunctionCall => {
+                        let fun = self.funcall();
+                        if fun.is_some() && self.terminator() {
+                            ast.push(fun.unwrap());
+                        }
+                    },
+                    _ => {}
+                }
+            }
+
+            // If we haven't moved, we've either finished iterating or something went wrong.
+            if self.index == last_index {
+                break;
+            }
         }
 
         return ast;
@@ -92,13 +128,14 @@ impl<'a> Parser<'a>
 
     fn assignment(&mut self) -> Option<Node> {
 
+        let v = self.variable();
+        if !v.is_some() {
+            return None
+        }
+
         let mut x = self.make_node(ASTType::Assignment, None);
 
-        let v = self.variable();
-        match v {
-            Some(l) => x.append_l(ASTType::Variable, l),
-            None    => return None
-        }
+        x.append_l(ASTType::Variable, v.unwrap());
 
         if !self.equals() {
             return None;

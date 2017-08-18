@@ -36,6 +36,10 @@ impl Token {
     pub fn get_val(&self) -> String {
         return self.t_val.clone();
     }
+
+    pub fn get_type(&self) -> TokenType {
+        return self.t_type.clone();
+    }
 }
 
 pub fn scan(program: String) -> Vec<Token> {
